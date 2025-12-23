@@ -203,38 +203,25 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   transform-origin:center bottom;
 }
 .eye{
-  width:30px;
-  height:30px;
-  background:#fff;
-  border-radius:50%;
-  position:absolute;
-  top:25px; 
+  width:30px; height:30px; background:#fff; border-radius:50%; position:absolute; top:25px;
 }
 .eye.left{left:20px;}
 .eye.right{left:70px;}
-.pupil{
-  width:12px; height:12px; background:#222; border-radius:50%; position:absolute; top:9px; left:9px;
-}
-.eyelid{
-  width:30px; height:15px; background:#ffde59; position:absolute; top:0; left:0; border-radius:50% 50% 0 0; opacity:0; transition:0.2s;}
-.beak{
-  width:20px; height:15px; background:#e67e22; position:absolute; top:60px; left:50%; transform:translateX(-50%) rotate(0deg); border-radius:4px;}
-.leg{
-  width:10px; height:30px; background:#e67e22;
-  position:absolute; bottom:0;
-}
+.pupil{width:12px; height:12px; background:#222; border-radius:50%; position:absolute; top:9px; left:9px;}
+.eyelid{width:30px; height:15px; background:#ffde59; position:absolute; top:0; left:0; border-radius:50% 50% 0 0; opacity:0; transition:0.2s;}
+.beak{width:20px; height:15px; background:#e67e22; position:absolute; top:60px; left:50%; transform:translateX(-50%) rotate(0deg); border-radius:4px;}
+.leg{width:10px; height:30px; background:#e67e22; position:absolute; bottom:0;}
 .leg.left{left:35px;}
 .leg.right{right:35px;}
-.wing{
-  width:30px; height:20px;
-  background:#f5c242;
-  position:absolute; top:50px; left:10px;
-  border-radius:50%;
-  transform-origin:top center;
-}
+.wing{width:30px; height:20px; background:#f5c242; position:absolute; top:50px; left:10px; border-radius:50%; transform-origin:top center;}
 </style>
 </head>
 <body>
+
+<!-- Google Sign-In Button -->
+<button id="googleSignIn" style="margin-bottom:20px; padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#4285F4; color:#fff; cursor:pointer;">
+  Sign in with Google
+</button>
 
 <div class="tv-container">
   <div class="screen" id="screen">
@@ -285,6 +272,18 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   };
 
   firebase.initializeApp(firebaseConfig);
+
+  // Google Sign-In logic
+  const provider = new firebase.auth.GoogleAuthProvider();
+  const signInButton = document.getElementById('googleSignIn');
+  signInButton.addEventListener('click', () => {
+    firebase.auth().signInWithPopup(provider)
+      .then(result => {
+        console.log('User signed in:', result.user.displayName);
+        signInButton.style.display = 'none'; // hide button after login
+      })
+      .catch(error => console.error('Error signing in:', error));
+  });
 </script>
 
 <script>
