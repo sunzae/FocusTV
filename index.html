@@ -417,7 +417,8 @@ const eyelids=char.querySelectorAll('.eyelid');
 function updateCharacter(){
   const stepSpeed=0.4;
   const screen=document.getElementById('screen').getBoundingClientRect();
-  if(hideTimer>0){ hideTimer--; char.style.opacity=0; requestAnimationFrame(updateCharacter); return;} else char.style.opacity=1;
+  char.style.opacity = 1; // chicken always visible
+
 
   if(charState==='walk'){
     charX+=stepSpeed*charDir;
@@ -429,7 +430,7 @@ function updateCharacter(){
     if(Math.random()<0.002) charState='idle';
   } else if(charState==='idle'){
     if(Math.random()<0.01){ charState='flap'; setTimeout(()=>charState='walk',300);}
-    if(Math.random()<0.005) hideTimer=100+Math.floor(Math.random()*200);
+
   } else if(charState==='flap'){ body.style.transform='rotate(-5deg)';}
 
   if(charX<0){ charX=0; charDir=1;}
