@@ -220,21 +220,15 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 .beak{
   width:20px; height:15px; background:#e67e22; position:absolute; top:60px; left:50%; transform:translateX(-50%) rotate(0deg); border-radius:4px;}
 .leg{
-  width:10px;
-  height:30px;
-  background:#e67e22;
-  position:absolute;
-  bottom:0;
+  width:10px; height:30px; background:#e67e22;
+  position:absolute; bottom:0;
 }
 .leg.left{left:35px;}
 .leg.right{right:35px;}
 .wing{
-  width:30px;
-  height:20px;
+  width:30px; height:20px;
   background:#f5c242;
-  position:absolute;
-  top:50px;
-  left:10px;
+  position:absolute; top:50px; left:10px;
   border-radius:50%;
   transform-origin:top center;
 }
@@ -278,10 +272,10 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
     <div class="leg right leg"></div>
   </div>
 </div>
-<!-- Firebase SDKs (NON-MODULE) -->
+
+<!-- Firebase SDKs (COMPAT) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBifk0sNKKeZfo_60De1DwGBchwOY7OD80",
