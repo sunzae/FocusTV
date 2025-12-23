@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FocusTV</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-items:center;flex-direction:column;position:relative;overflow:hidden;}
+
+/* TV container */
+.tv-container{
+  position:relative;
+  width:700px;
+  height:500px;
+  background:#222;
+  border-radius:40px;
+  padding:30px;
+  box-shadow:0 30px 70px rgba(0,0,0,0.3);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.screen{
+  position:relative;
+  width:100%;
+  height:100%;
+  border-radius:25px;
+  background:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+  transition:opacity 0.4s ease, background 0.5s ease;
+}
+
+/* CRT flicker */
+.crt{
+  position:absolute;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+  background-image:repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 2px);
+  animation:flicker 0.1s infinite alternate;
+  opacity:0;
+  transition:opacity 0.2s ease;
+}
+@keyframes flicker{
+  0%{opacity:0.05;}
+  50%{opacity:0.1;}
+  100%{opacity:0.05;}
+}
+
+/* Views */
+.view{
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  padding:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.5s ease;
+}
+.view.active{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* To-do list */
+.todo input{
+  width:80%;
+  padding:12px;
+  border-radius:14px;
+  border:none;
+  margin-bottom:15px;
+  font-size:16px;
+  outline:none;
+  background:#f0f0f0;
+}
+.todo ul{
+  list-style:none;
+  width:80%;
+  overflow-y:auto;
+  max-height:100%;
+  padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.todo li{
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+  font-size:16px;
+  border-bottom:1px solid rgba(0,0,0,0.1);
+  cursor:pointer;
+  transition:0.2s;
+}
+.todo li:hover{background:#e3e3e3;}
+
+/* Timer */
+.timer{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  border-radius:16px;
+  font-family:'Inter',sans-serif;
+  background:#fefcf8;
+  transition:background 0.3s ease;
+}
+.timer h2{
+  font-size:24px;
+  margin-bottom:12px;
+  color:#222;
+  text-align:center;
+  width:80%;
+  border-bottom:1px solid rgba(0,0,0,0.1);
+  padding-bottom:6px;
+}
+#time{
+  font-size:50px;
+  margin:15px 0;
+  color:#222;
+  cursor:text;
+  padding:6px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.3);
+  min-width:140px;
+  text-align:center;
+}
+.timer-controls{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-top:15px;
+  justify-content:center;
+}
+.timer-controls button{
+  padding:8px 16px;
+  border:none;
+  border-radius:12px;
+  background:#222;
+  color:#fff;
+  cursor:pointer;
+  font-size:16px;
+  transition:background 0.3s, transform 0.1s;
+}
+.timer-controls button:hover{background:#555;}
+.timer-controls button:active{transform:scale(0.95);}
+#bgColor{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  border:none;
+  cursor:pointer;
+}
+
+/* Remote toggle button below TV */
+.remote-btn{
+  margin-top:25px;
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  background:#222;
+  border:none;
+  color:#fff;
+  font-size:22px;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(0,0,0,0.3);
+  transition:transform 0.2s;
+}
+.remote-btn:active{transform:scale(0.95);}
+
+/* Snake Game */
+#snakeCanvas{
+  background:#111;
+  border-radius:20px;
+}
+
+/* Chicken mascot */
+#cuteCharacter{
+  position:absolute;
+  width:160px;
+  height:140px;
+  pointer-events:auto;
+  z-index:999;
+}
+.chicken-body{
+  width:120px;
+  height:140px;
+  background:linear-gradient(to bottom,#ffde59 0%,#fcd34d 100%);
+  border-radius:50% 50% 40% 40%;
+  position:relative;
+  transform-origin:center bottom;
+}
+.eye{
+  width:30px;
+  height:30px;
+  background:#fff;
+  border-radius:50%;
+  position:absolute;
+  top:25px; 
+}
+.eye.left{left:20px;}
+.eye.right{left:70px;}
+.pupil{
+  width:12px; height:12px; background:#222; border-radius:50%; position:absolute; top:9px; left:9px;
+}
+.eyelid{
+  width:30px; height:15px; background:#ffde59; position:absolute; top:0; left:0; border-radius:50% 50% 0 0; opacity:0; transition:0.2s;}
+.beak{
+  width:20px; height:15px; background:#e67e22; position:absolute; top:60px; left:50%; transform:translateX(-50%) rotate(0deg); border-radius:4px;}
+.leg{
+  width:10px;
+  height:30px;
+  background:#e67e22;
+  position:absolute;
+  bottom:0;
+}
+.leg.left{left:35px;}
+.leg.right{right:35px;}
+.wing{
+  width:30px;
+  height:20px;
+  background:#f5c242;
+  position:absolute;
+  top:50px;
+  left:10px;
+  border-radius:50%;
+  transform-origin:top center;
+}
+</style>
+</head>
+<body>
+
+<div class="tv-container">
+  <div class="screen" id="screen">
+    <div class="view active todo" id="todoView">
+      <input id="taskInput" placeholder="Add a task and press Enter">
+      <ul id="taskList"></ul>
+    </div>
+    <div class="view" id="snakeView">
+      <canvas id="snakeCanvas" width="600" height="400"></canvas>
+    </div>
+    <div class="view timer" id="timerView">
+      <h2 contenteditable id="focusName">Your Focus</h2>
+      <div id="time" contenteditable>25:00</div>
+      <div class="timer-controls">
+        <input type="color" id="bgColor" value="#fefcf8">
+        <button onclick="startTimer()">Start</button>
+        <button onclick="stopTimer()">Stop</button>
+        <button onclick="resetTimer()">Reset</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="remote-btn" onclick="cycleMode()">◉</button>
+
+<!-- Chicken mascot -->
+<div id="cuteCharacter">
+  <div class="chicken-body body">
+    <div class="eye left"><div class="pupil"></div><div class="eyelid"></div></div>
+    <div class="eye right"><div class="pupil"></div><div class="eyelid"></div></div>
+    <div class="beak"></div>
+    <div class="wing"></div>
+    <div class="wing" style="left:70px;"></div>
+    <div class="leg left leg"></div>
+    <div class="leg right leg"></div>
+  </div>
+</div>
+
+<script>
+// ---------- Toggle logic ----------
+let mode=0;
+const views=['todoView','snakeView','timerView'];
+const crt=document.createElement('div');
+crt.classList.add('crt');
+document.getElementById('screen').appendChild(crt);
+
+function cycleMode(){
+  crt.style.opacity=0.1;
+  setTimeout(()=>{
+    mode=(mode+1)%views.length;
+    renderView();
+    crt.style.opacity=0;
+  },200);
+}
+function renderView(){
+  views.forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(views[mode]).classList.add('active');
+  if(mode===1) startSnake();
+}
+renderView();
+
+// ---------- To-do ----------
+const input=document.getElementById('taskInput');
+const list=document.getElementById('taskList');
+window.addEventListener('load',()=>{
+  const savedTasks=JSON.parse(localStorage.getItem('tasks'))||[];
+  savedTasks.forEach(task=>addTask(task));
+});
+function addTask(taskText){
+  const li=document.createElement('li');
+  li.textContent=taskText;
+  li.onclick=()=>{ li.remove(); saveTasks(); };
+  list.appendChild(li);
+  saveTasks();
+}
+function saveTasks(){
+  const tasks=Array.from(list.querySelectorAll('li')).map(li=>li.textContent);
+  localStorage.setItem('tasks',JSON.stringify(tasks));
+}
+input.addEventListener('keypress',e=>{
+  if(e.key==='Enter' && input.value.trim()!==''){
+    addTask(input.value); input.value='';
+  }
+});
+
+// ---------- Timer ----------
+let timerSeconds=1500, interval=null;
+const timerView=document.getElementById('timerView');
+const bgColorInput=document.getElementById('bgColor');
+const timeDisplay=document.getElementById('time');
+window.addEventListener('load',()=>{
+  const savedSeconds=localStorage.getItem('timerSeconds');
+  const savedFocus=localStorage.getItem('focusName');
+  const savedColor=localStorage.getItem('timerBgColor');
+  if(savedSeconds){ timerSeconds=parseInt(savedSeconds); timeDisplay.textContent=formatTime(timerSeconds);}
+  if(savedFocus){ document.getElementById('focusName').textContent=savedFocus;}
+  if(savedColor){ bgColorInput.value=savedColor; timerView.style.background=savedColor;}
+});
+function saveTimer(){
+  localStorage.setItem('timerSeconds',timerSeconds);
+  localStorage.setItem('focusName',document.getElementById('focusName').textContent);
+  localStorage.setItem('timerBgColor',bgColorInput.value);
+}
+timeDisplay.addEventListener('input',saveTimer);
+document.getElementById('focusName').addEventListener('input',saveTimer);
+bgColorInput.addEventListener('input',()=>{
+  timerView.style.background=bgColorInput.value;
+  saveTimer();
+});
+function parseTime(str){
+  const parts=str.split(':');
+  let m=parseInt(parts[0])||0; let s=parseInt(parts[1])||0;
+  return m*60+s;
+}
+function formatTime(sec){
+  const m=Math.floor(sec/60);
+  const s=sec%60;
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+function startTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent); timerView.style.background=bgColorInput.value;
+interval=setInterval(()=>{
+if(timerSeconds<=0){ stopTimer(); mode=1; renderView(); return;}
+timerSeconds--; timeDisplay.textContent=formatTime(timerSeconds);
+},1000);}
+function stopTimer(){ clearInterval(interval);}
+function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
+timeDisplay.addEventListener('input',()=>{ let val=timeDisplay.textContent.replace(/[^\d:]/g,''); if(!val.includes(':')) val+=':00'; timeDisplay.textContent=val;});
+
+// ---------- Snake ----------
+const canvas=document.getElementById('snakeCanvas');
+const ctx=canvas.getContext('2d');
+const scale=20;
+const rows=canvas.height/scale;
+const cols=canvas.width/scale;
+let snake=[{x:10,y:10}];
+let dx=1,dy=0,snakeLength=1;
+let food={x:15,y:10};
+let gameInterval=null;
+function drawSnakeGame(){
+  ctx.fillStyle="#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#ff6ec7"; ctx.fillRect(food.x*scale,food.y*scale,scale,scale);
+  ctx.fillStyle="#a0e7e5"; snake.forEach(seg=>ctx.fillRect(seg.x*scale,seg.y*scale,scale,scale));
+}
+function updateSnake(){
+  const head={x:(snake[snake.length-1].x+dx+cols)%cols, y:(snake[snake.length-1].y+dy+rows)%rows};
+  snake.push(head);
+  if(head.x===food.x && head.y===food.y){ snakeLength++; food={x:Math.floor(Math.random()*cols),y:Math.floor(Math.random()*rows)}; }
+  while(snake.length>snakeLength) snake.shift();
+  for(let i=0;i<snake.length-1;i++){ if(snake[i].x===head.x && snake[i].y===head.y){ snakeLength=1; snake=[{x:10,y:10}]; dx=1;dy=0;} }
+  drawSnakeGame();
+}
+function startSnake(){ if(gameInterval) clearInterval(gameInterval); if(mode===1) gameInterval=setInterval(updateSnake,100);}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp' && dy===0){dx=0;dy=-1;}
+  if(e.key==='ArrowDown' && dy===0){dx=0;dy=1;}
+  if(e.key==='ArrowLeft' && dx===0){dx=-1;dy=0;}
+  if(e.key==='ArrowRight' && dx===0){dx=1;dy=0;}
+});
+
+// ---------- Chicken mascot ----------
+const char=document.getElementById('cuteCharacter');
+let charX=100,charY=window.innerHeight-180,charDir=1,stepCounter=0,charState='walk',hideTimer=0;
+const legs=char.querySelectorAll('.leg');
+const body=char.querySelector('.body');
+const eyes=char.querySelectorAll('.eye');
+const eyelids=char.querySelectorAll('.eyelid');
+function updateCharacter(){
+  const stepSpeed=0.4;
+  const screen=document.getElementById('screen').getBoundingClientRect();
+  if(hideTimer>0){ hideTimer--; char.style.opacity=0; requestAnimationFrame(updateCharacter); return;} else char.style.opacity=1;
+
+  if(charState==='walk'){
+    charX+=stepSpeed*charDir;
+    stepCounter+=0.08;
+    charY=window.innerHeight-180 + Math.sin(stepCounter*2)*1.5;
+    legs[0].style.transform=`rotate(${Math.sin(stepCounter*3)*15}deg)`;
+    legs[1].style.transform=`rotate(${Math.sin(stepCounter*3+Math.PI)*15}deg)`;
+    body.style.transform=`rotate(${Math.sin(stepCounter*2)*2}deg)`;
+    if(Math.random()<0.002) charState='idle';
+  } else if(charState==='idle'){
+    if(Math.random()<0.01){ charState='flap'; setTimeout(()=>charState='walk',300);}
+    if(Math.random()<0.005) hideTimer=100+Math.floor(Math.random()*200);
+  } else if(charState==='flap'){ body.style.transform='rotate(-5deg)';}
+
+  if(charX<0){ charX=0; charDir=1;}
+  if(charX+160>window.innerWidth){ charX=window.innerWidth-160; charDir=-1;}
+
+  // eyelid blink
+  if(Math.random()<0.01){
+    eyelids.forEach(e=>e.style.opacity=1);
+    setTimeout(()=>eyelids.forEach(e=>e.style.opacity=0),200);
+  }
+
+  char.style.left=charX+'px';
+  char.style.top=charY+'px';
+  char.style.transform=`scaleX(${charDir})`;
+  requestAnimationFrame(updateCharacter);
+}
+updateCharacter();
+
+// Click interaction
+char.addEventListener('click',()=>{
+  const wings=char.querySelectorAll('.wing');
+  wings.forEach(w=>w.style.transform='rotate(35deg)');
+  eyelids.forEach(e=>e.style.opacity=1);
+  setTimeout(()=>{
+    wings.forEach(w=>w.style.transform='rotate(0deg)');
+    eyelids.forEach(e=>e.style.opacity=0);
+  },600);
+});
+</script>
+</body>
+</html>
