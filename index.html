@@ -241,29 +241,6 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 </style>
 </head>
 <body>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBifk0sNKKeZfo_60De1DwGBchwOY7OD80",
-    authDomain: "focustv-aa6f3.firebaseapp.com",
-    projectId: "focustv-aa6f3",
-    storageBucket: "focustv-aa6f3.firebasestorage.app",
-    messagingSenderId: "491104421210",
-    appId: "1:491104421210:web:2f57ec43a7bf2a348bdf63",
-    measurementId: "G-40EG0PD9W3"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 <div class="tv-container">
   <div class="screen" id="screen">
     <div class="view active todo" id="todoView">
@@ -287,6 +264,30 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 </div>
 
 <button class="remote-btn" onclick="cycleMode()">◉</button>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBifk0sNKKeZfo_60De1DwGBchwOY7OD80",
+    authDomain: "focustv-aa6f3.firebaseapp.com",
+    projectId: "focustv-aa6f3",
+    storageBucket: "focustv-aa6f3.firebasestorage.app",
+    messagingSenderId: "491104421210",
+    appId: "1:491104421210:web:2f57ec43a7bf2a348bdf63",
+    measurementId: "G-40EG0PD9W3"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 
 <!-- Chicken mascot -->
 <div id="cuteCharacter">
