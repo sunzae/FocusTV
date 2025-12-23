@@ -242,6 +242,16 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 </head>
 <body>
 
+<!-- Firebase Auth UI -->
+<div id="auth-container" style="margin-bottom:15px; text-align:center;">
+  <input type="email" id="email" placeholder="Email" style="padding:8px; margin:5px;">
+  <input type="password" id="password" placeholder="Password" style="padding:8px; margin:5px;">
+  <button id="signup">Sign Up</button>
+  <button id="login">Log In</button>
+  <button id="logout" style="display:none;">Log Out</button>
+  <p id="user-info"></p>
+</div>
+
 <div class="tv-container">
   <div class="screen" id="screen">
     <div class="view active todo" id="todoView">
@@ -279,178 +289,185 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
 <script>
-// ---------- Toggle logic ----------
-let mode=0;
-const views=['todoView','snakeView','timerView'];
-const crt=document.createElement('div');
-crt.classList.add('crt');
-document.getElementById('screen').appendChild(crt);
+  // ---------- Firebase Config ----------
+  const app = firebase.initializeApp({
+    apiKey: "AIzaSyBifk0sNKKeZfo_60De1DwGBchwOY7OD80",
+    authDomain: "focustv-aa6f3.firebaseapp.com",
+    projectId: "focustv-aa6f3",
+    storageBucket: "focustv-aa6f3.firebasestorage.app",
+    messagingSenderId: "491104421210",
+    appId: "1:491104421210:web:febb30cad10d84228bdf63",
+    measurementId: "G-9WDZCNNZ96"
+  });
+  const auth = firebase.auth();
+  const analytics = firebase.analytics();
 
-function cycleMode(){
-  crt.style.opacity=0.1;
-  setTimeout(()=>{
-    mode=(mode+1)%views.length;
-    renderView();
-    crt.style.opacity=0;
-  },200);
-}
-function renderView(){
-  views.forEach(id => document.getElementById(id).classList.remove('active'));
-  document.getElementById(views[mode]).classList.add('active');
-  if(mode===1) startSnake();
-}
-renderView();
+  // ---------- Firebase Auth ----------
+  document.getElementById('signup').addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        alert("Signed up!");
+        document.getElementById('user-info').textContent = "Logged in as: " + userCredential.user.email;
+        toggleAuthButtons(true);
+      })
+      .catch(error => alert(error.message));
+  });
 
-// ---------- To-do ----------
-const input=document.getElementById('taskInput');
-const list=document.getElementById('taskList');
-window.addEventListener('load',()=>{
-  const savedTasks=JSON.parse(localStorage.getItem('tasks'))||[];
-  savedTasks.forEach(task=>addTask(task));
-});
-function addTask(taskText){
-  const li=document.createElement('li');
-  li.textContent=taskText;
-  li.onclick=()=>{ li.remove(); saveTasks(); };
-  list.appendChild(li);
-  saveTasks();
-}
-function saveTasks(){
-  const tasks=Array.from(list.querySelectorAll('li')).map(li=>li.textContent);
-  localStorage.setItem('tasks',JSON.stringify(tasks));
-}
-input.addEventListener('keypress',e=>{
-  if(e.key==='Enter' && input.value.trim()!==''){
-    addTask(input.value); input.value='';
-  }
-});
+  document.getElementById('login').addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(userCredential => {
+        alert("Logged in!");
+        document.getElementById('user-info').textContent = "Logged in as: " + userCredential.user.email;
+        toggleAuthButtons(true);
+      })
+      .catch(error => alert(error.message));
+  });
 
-// ---------- Timer ----------
-let timerSeconds=1500, interval=null;
-const timerView=document.getElementById('timerView');
-const bgColorInput=document.getElementById('bgColor');
-const timeDisplay=document.getElementById('time');
-window.addEventListener('load',()=>{
-  const savedSeconds=localStorage.getItem('timerSeconds');
-  const savedFocus=localStorage.getItem('focusName');
-  const savedColor=localStorage.getItem('timerBgColor');
-  if(savedSeconds){ timerSeconds=parseInt(savedSeconds); timeDisplay.textContent=formatTime(timerSeconds);}
-  if(savedFocus){ document.getElementById('focusName').textContent=savedFocus;}
-  if(savedColor){ bgColorInput.value=savedColor; timerView.style.background=savedColor;}
-});
-function saveTimer(){
-  localStorage.setItem('timerSeconds',timerSeconds);
-  localStorage.setItem('focusName',document.getElementById('focusName').textContent);
-  localStorage.setItem('timerBgColor',bgColorInput.value);
-}
-timeDisplay.addEventListener('input',saveTimer);
-document.getElementById('focusName').addEventListener('input',saveTimer);
-bgColorInput.addEventListener('input',()=>{
-  timerView.style.background=bgColorInput.value;
-  saveTimer();
-});
-function parseTime(str){
-  const parts=str.split(':');
-  let m=parseInt(parts[0])||0; let s=parseInt(parts[1])||0;
-  return m*60+s;
-}
-function formatTime(sec){
-  const m=Math.floor(sec/60);
-  const s=sec%60;
-  return `${m}:${s.toString().padStart(2,'0')}`;
-}
-function startTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent); timerView.style.background=bgColorInput.value;
-interval=setInterval(()=>{
-if(timerSeconds<=0){ stopTimer(); mode=1; renderView(); return;}
-timerSeconds--; timeDisplay.textContent=formatTime(timerSeconds);
-},1000);}
-function stopTimer(){ clearInterval(interval);}
-function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
-timeDisplay.addEventListener('input',()=>{ let val=timeDisplay.textContent.replace(/[^\d:]/g,''); if(!val.includes(':')) val+=':00'; timeDisplay.textContent=val;});
+  document.getElementById('logout').addEventListener('click', () => {
+    auth.signOut().then(() => {
+      alert("Logged out!");
+      document.getElementById('user-info').textContent = "";
+      toggleAuthButtons(false);
+    });
+  });
 
-// ---------- Snake ----------
-const canvas=document.getElementById('snakeCanvas');
-const ctx=canvas.getContext('2d');
-const scale=20;
-const rows=canvas.height/scale;
-const cols=canvas.width/scale;
-let snake=[{x:10,y:10}];
-let dx=1,dy=0,snakeLength=1;
-let food={x:15,y:10};
-let gameInterval=null;
-function drawSnakeGame(){
-  ctx.fillStyle="#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#ff6ec7"; ctx.fillRect(food.x*scale,food.y*scale,scale,scale);
-  ctx.fillStyle="#a0e7e5"; snake.forEach(seg=>ctx.fillRect(seg.x*scale,seg.y*scale,scale,scale));
-}
-function updateSnake(){
-  const head={x:(snake[snake.length-1].x+dx+cols)%cols, y:(snake[snake.length-1].y+dy+rows)%rows};
-  snake.push(head);
-  if(head.x===food.x && head.y===food.y){ snakeLength++; food={x:Math.floor(Math.random()*cols),y:Math.floor(Math.random()*rows)}; }
-  while(snake.length>snakeLength) snake.shift();
-  for(let i=0;i<snake.length-1;i++){ if(snake[i].x===head.x && snake[i].y===head.y){ snakeLength=1; snake=[{x:10,y:10}]; dx=1;dy=0;} }
-  drawSnakeGame();
-}
-function startSnake(){ if(gameInterval) clearInterval(gameInterval); if(mode===1) gameInterval=setInterval(updateSnake,100);}
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowUp' && dy===0){dx=0;dy=-1;}
-  if(e.key==='ArrowDown' && dy===0){dx=0;dy=1;}
-  if(e.key==='ArrowLeft' && dx===0){dx=-1;dy=0;}
-  if(e.key==='ArrowRight' && dx===0){dx=1;dy=0;}
-});
-
-// ---------- Chicken mascot ----------
-const char=document.getElementById('cuteCharacter');
-let charX=100,charY=window.innerHeight-180,charDir=1,stepCounter=0,charState='walk',hideTimer=0;
-const legs=char.querySelectorAll('.leg');
-const body=char.querySelector('.body');
-const eyes=char.querySelectorAll('.eye');
-const eyelids=char.querySelectorAll('.eyelid');
-function updateCharacter(){
-  const stepSpeed=0.4;
-  const screen=document.getElementById('screen').getBoundingClientRect();
-  if(hideTimer>0){ hideTimer--; char.style.opacity=0; requestAnimationFrame(updateCharacter); return;} else char.style.opacity=1;
-
-  if(charState==='walk'){
-    charX+=stepSpeed*charDir;
-    stepCounter+=0.08;
-    charY=window.innerHeight-180 + Math.sin(stepCounter*2)*1.5;
-    legs[0].style.transform=`rotate(${Math.sin(stepCounter*3)*15}deg)`;
-    legs[1].style.transform=`rotate(${Math.sin(stepCounter*3+Math.PI)*15}deg)`;
-    body.style.transform=`rotate(${Math.sin(stepCounter*2)*2}deg)`;
-    if(Math.random()<0.002) charState='idle';
-  } else if(charState==='idle'){
-    if(Math.random()<0.01){ charState='flap'; setTimeout(()=>charState='walk',300);}
-    if(Math.random()<0.005) hideTimer=100+Math.floor(Math.random()*200);
-  } else if(charState==='flap'){ body.style.transform='rotate(-5deg)';}
-
-  if(charX<0){ charX=0; charDir=1;}
-  if(charX+160>window.innerWidth){ charX=window.innerWidth-160; charDir=-1;}
-
-  // eyelid blink
-  if(Math.random()<0.01){
-    eyelids.forEach(e=>e.style.opacity=1);
-    setTimeout(()=>eyelids.forEach(e=>e.style.opacity=0),200);
+  function toggleAuthButtons(isLoggedIn){
+    document.getElementById('signup').style.display = isLoggedIn ? "none" : "inline-block";
+    document.getElementById('login').style.display = isLoggedIn ? "none" : "inline-block";
+    document.getElementById('logout').style.display = isLoggedIn ? "inline-block" : "none";
   }
 
-  char.style.left=charX+'px';
-  char.style.top=charY+'px';
-  char.style.transform=`scaleX(${charDir})`;
-  requestAnimationFrame(updateCharacter);
-}
-updateCharacter();
+  auth.onAuthStateChanged(user => {
+    if(user){
+      document.getElementById('user-info').textContent = "Logged in as: " + user.email;
+      toggleAuthButtons(true);
+    } else {
+      toggleAuthButtons(false);
+    }
+  });
 
-// Click interaction
-char.addEventListener('click',()=>{
-  const wings=char.querySelectorAll('.wing');
-  wings.forEach(w=>w.style.transform='rotate(35deg)');
-  eyelids.forEach(e=>e.style.opacity=1);
-  setTimeout(()=>{
-    wings.forEach(w=>w.style.transform='rotate(0deg)');
-    eyelids.forEach(e=>e.style.opacity=0);
-  },600);
-});
-</script>
-</body>
-</html>
+  // ---------- FocusTV App Logic ----------
+  let mode=0;
+  const views=['todoView','snakeView','timerView'];
+  const crt=document.createElement('div');
+  crt.classList.add('crt');
+  document.getElementById('screen').appendChild(crt);
+
+  function cycleMode(){
+    crt.style.opacity=0.1;
+    setTimeout(()=>{
+      mode=(mode+1)%views.length;
+      renderView();
+      crt.style.opacity=0;
+    },200);
+  }
+  function renderView(){
+    views.forEach(id => document.getElementById(id).classList.remove('active'));
+    document.getElementById(views[mode]).classList.add('active');
+    if(mode===1) startSnake();
+  }
+  renderView();
+
+  // ---------- To-do ----------
+  const input=document.getElementById('taskInput');
+  const list=document.getElementById('taskList');
+  window.addEventListener('load',()=>{
+    const savedTasks=JSON.parse(localStorage.getItem('tasks'))||[];
+    savedTasks.forEach(task=>addTask(task));
+  });
+  function addTask(taskText){
+    const li=document.createElement('li');
+    li.textContent=taskText;
+    li.onclick=()=>{ li.remove(); saveTasks(); };
+    list.appendChild(li);
+    saveTasks();
+  }
+  function saveTasks(){
+    const tasks=Array.from(list.querySelectorAll('li')).map(li=>li.textContent);
+    localStorage.setItem('tasks',JSON.stringify(tasks));
+  }
+  input.addEventListener('keypress',e=>{
+    if(e.key==='Enter' && input.value.trim()!==''){
+      addTask(input.value); input.value='';
+    }
+  });
+
+  // ---------- Timer ----------
+  let timerSeconds=1500, interval=null;
+  const timerView=document.getElementById('timerView');
+  const bgColorInput=document.getElementById('bgColor');
+  const timeDisplay=document.getElementById('time');
+  window.addEventListener('load',()=>{
+    const savedSeconds=localStorage.getItem('timerSeconds');
+    const savedFocus=localStorage.getItem('focusName');
+    const savedColor=localStorage.getItem('timerBgColor');
+    if(savedSeconds){ timerSeconds=parseInt(savedSeconds); timeDisplay.textContent=formatTime(timerSeconds);}
+    if(savedFocus){ document.getElementById('focusName').textContent=savedFocus;}
+    if(savedColor){ bgColorInput.value=savedColor; timerView.style.background=savedColor;}
+  });
+  function saveTimer(){
+    localStorage.setItem('timerSeconds',timerSeconds);
+    localStorage.setItem('focusName',document.getElementById('focusName').textContent);
+    localStorage.setItem('timerBgColor',bgColorInput.value);
+  }
+  timeDisplay.addEventListener('input',saveTimer);
+  document.getElementById('focusName').addEventListener('input',saveTimer);
+  bgColorInput.addEventListener('input',()=>{
+    timerView.style.background=bgColorInput.value;
+    saveTimer();
+  });
+  function parseTime(str){
+    const parts=str.split(':');
+    let m=parseInt(parts[0])||0; let s=parseInt(parts[1])||0;
+    return m*60+s;
+  }
+  function formatTime(sec){
+    const m=Math.floor(sec/60);
+    const s=sec%60;
+    return `${m}:${s.toString().padStart(2,'0')}`;
+  }
+  function startTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent); timerView.style.background=bgColorInput.value;
+  interval=setInterval(()=>{
+    if(timerSeconds<=0){ stopTimer(); mode=1; renderView(); return;}
+    timerSeconds--; timeDisplay.textContent=formatTime(timerSeconds);
+  },1000);}
+  function stopTimer(){ clearInterval(interval);}
+  function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
+  timeDisplay.addEventListener('input',()=>{ let val=timeDisplay.textContent.replace(/[^\d:]/g,''); if(!val.includes(':')) val+=':00'; timeDisplay.textContent=val;});
+
+  // ---------- Snake ----------
+  const canvas=document.getElementById('snakeCanvas');
+  const ctx=canvas.getContext('2d');
+  const scale=20;
+  const rows=canvas.height/scale;
+  const cols=canvas.width/scale;
+  let snake=[{x:10,y:10}];
+  let dx=1,dy=0,snakeLength=1;
+  let food={x:15,y:10};
+  let gameInterval=null;
+  function drawSnakeGame(){
+    ctx.fillStyle="#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle="#ff6ec7"; ctx.fillRect(food.x*scale,food.y*scale,scale,scale);
+    ctx.fillStyle="#a0e7e5"; snake.forEach(seg=>ctx.fillRect(seg.x*scale,seg.y*scale,scale,scale));
+  }
+  function updateSnake(){
+    const head={x:(snake[snake.length-1].x+dx+cols)%cols, y:(snake[snake.length-1].y+dy+rows)%rows};
+    snake.push(head);
+    if(head.x===food.x && head.y===food.y){ snakeLength++; food={x:Math.floor(Math.random()*cols),y:Math.floor(Math.random()*rows)}; }
+    while(snake.length>snakeLength) snake.shift();
+    for(let i=0;i<snake.length-1;i++){ if(snake[i].x===head.x && snake[i].y===head.y){ snakeLength=1; snake=[{x:10,y:10}]; dx=1;dy=0;} }
+    drawSnakeGame();
+  }
+  function startSnake(){ if(gameInterval) clearInterval(gameInterval); if(mode===1) gameInterval=setInterval(updateSnake,100);}
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowUp' && dy===0){dx=0;dy=-1;}
+    if(e.key==='ArrowDown' && dy===0){dx=0;dy=1;}
+   
