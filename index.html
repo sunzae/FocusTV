@@ -294,7 +294,7 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 <script>
 // ---------- Toggle logic ----------
 let mode=0;
-const views=['todoView','snakeView','timerView'];
+const views=['todoView','snakeView','timerView','sessionView'];
 const crt=document.createElement('div');
 crt.classList.add('crt');
 document.getElementById('screen').appendChild(crt);
@@ -377,7 +377,11 @@ interval=setInterval(()=>{
 if(timerSeconds<=0){ stopTimer(); mode=1; renderView(); return;}
 timerSeconds--; timeDisplay.textContent=formatTime(timerSeconds);
 },1000);}
-function stopTimer(){ clearInterval(interval);}
+function stopTimer(){
+  clearInterval(interval);
+  recordTimerSession(); // <-- add this line to log the session
+}
+
 function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
 timeDisplay.addEventListener('input',()=>{ let val=timeDisplay.textContent.replace(/[^\d:]/g,''); if(!val.includes(':')) val+=':00'; timeDisplay.textContent=val;});
 
@@ -465,5 +469,107 @@ char.addEventListener('click',()=>{
   },600);
 });
 </script>
+<!-- Session Tracker -->
+<div class="view" id="sessionView">
+  <h2>Session History</h2>
+  <div id="sessionsContainer" style="width:90%;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
+<script>
+// ---------- Session Tracking ----------
+const sessionView = document.getElementById('sessionView');
+const sessionsContainer = document.getElementById('sessionsContainer');
+
+// Function to get stored sessions
+function getSessions() {
+  return JSON.parse(localStorage.getItem('sessions')) || [];
+}
+
+// Function to save a new session
+function addSession(durationSeconds) {
+  const now = new Date();
+  const sessions = getSessions();
+  sessions.push({ timestamp: now.getTime(), duration: durationSeconds });
+  localStorage.setItem('sessions', JSON.stringify(sessions));
+}
+
+// Call this when the user stops the timer
+function recordTimerSession() {
+  if(timerSeconds < 1500) { // Only record if timer was started
+    const duration = 1500 - timerSeconds;
+    addSession(duration);
+  }
+}
+
+// Format timestamp into readable string
+function formatDate(ts) {
+  const d = new Date(ts);
+  return d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+}
+
+// Group sessions by period
+function getSessionsByPeriod() {
+  const sessions = getSessions();
+  const now = new Date();
+  const periods = {
+    today: [],
+    yesterday: [],
+    lastWeek: [],
+    lastMonth: [],
+    last3Months: [],
+    thisYear: [],
+    allTime: sessions
+  };
+
+  sessions.forEach(s => {
+    const d = new Date(s.timestamp);
+    const diffDays = Math.floor((now - d)/(1000*60*60*24));
+    if(d.toDateString() === now.toDateString()) periods.today.push(s);
+    else if(diffDays === 1) periods.yesterday.push(s);
+    else if(diffDays <= 7) periods.lastWeek.push(s);
+    else if(diffDays <= 30) periods.lastMonth.push(s);
+    else if(diffDays <= 90) periods.last3Months.push(s);
+    else if(d.getFullYear() === now.getFullYear()) periods.thisYear.push(s);
+  });
+
+  return periods;
+}
+
+// Render sessions in container
+function renderSessions() {
+  const periods = getSessionsByPeriod();
+  sessionsContainer.innerHTML = '';
+
+  for(const [key, sessArr] of Object.entries(periods)) {
+    if(sessArr.length === 0) continue;
+    const section = document.createElement('div');
+    section.style.marginBottom = '12px';
+    const title = document.createElement('h3');
+    title.textContent = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+    title.style.marginBottom = '4px';
+    section.appendChild(title);
+
+    sessArr.forEach(s => {
+      const div = document.createElement('div');
+      div.textContent = `${formatDate(s.timestamp)} - ${Math.floor(s.duration/60)} min ${s.duration%60} sec`;
+      div.style.padding = '6px 10px';
+      div.style.background = '#f0f0f0';
+      div.style.borderRadius = '8px';
+      div.style.fontSize = '14px';
+      section.appendChild(div);
+    });
+
+    sessionsContainer.appendChild(section);
+  }
+}
+
+// Automatically refresh when session view is active
+function showSessionView() {
+  views.forEach(id => document.getElementById(id).classList.remove('active'));
+  sessionView.classList.add('active');
+  renderSessions();
+}
+</script>
+
 </body>
 </html>
