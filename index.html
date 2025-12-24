@@ -477,7 +477,13 @@ function stopTimer(){
   recordTimerSession();
 }
 
-function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
+function resetTimer(){
+  clearInterval(interval);
+  timerRunning = false;
+  timerSeconds = initialTimerSeconds;
+  timeDisplay.textContent = formatTime(timerSeconds);
+  timerView.style.background = bgColorInput.value;
+}
 
 // ---------- Snake ----------
 const canvas=document.getElementById('snakeCanvas'); const ctx=canvas.getContext('2d');
