@@ -5,7 +5,13 @@
 <title>FocusTV</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-items:center;flex-direction:column;position:relative;overflow:hidden;}
 
 /* TV container */
@@ -440,6 +446,10 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease;
+display:flex;
+align-items:center;
+justify-content:center;
+
 }
 
 .remote-button:hover{
@@ -458,6 +468,39 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   opacity:1;
 }
 
+/* ===== Account & Settings Views ===== */
+#accountView,
+#settingsView{
+  background: linear-gradient(180deg, #0f172a, #020617);
+  color: #e5e7eb;
+  border-radius: 20px;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+
+#accountView h2,
+#settingsView h2{
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+#accountView div,
+#settingsView div{
+  font-size: 15px;
+  opacity: 0.85;
+}
+/* ===== Hide special views from main cycle ===== */
+.special-view{
+  display:none;
+}
+
+.special-view.active{
+  display:flex;
+}
+
+
 
 </style>
 </head>
@@ -470,6 +513,22 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 
 <div class="tv-container">
   <div class="screen" id="screen">
+<div class="view special-view" id="accountView">
+
+  <h2>Account</h2>
+  <div style="margin-top:10px;opacity:0.7;font-size:14px">
+    FocusTV Profile
+  </div>
+</div>
+<div class="view special-view" id="settingsView">
+
+  <h2>Settings</h2>
+  <div style="margin-top:10px;opacity:0.7;font-size:14px">
+    FocusTV Preferences
+  </div>
+</div>
+
+
     <div class="view active todo" id="todoView">
       <input id="taskInput" placeholder="Add a task and press Enter">
       <ul id="taskList"></ul>
@@ -541,6 +600,7 @@ firebase.auth().onAuthStateChanged(u=>{
 // ---------- Toggle logic ----------
 let mode=0;
 const views=['todoView','snakeView','timerView','sessionView'];
+
 const crt=document.createElement('div');
 crt.classList.add('crt');
 document.getElementById('screen').appendChild(crt);
@@ -553,11 +613,40 @@ function cycleMode(){
   },200);
 }
 function renderView(){
-  views.forEach(id=>document.getElementById(id).classList.remove('active'));
+
+  // 🔒 FORCE-CLOSE Account & Settings
+  document.querySelectorAll('.special-view')
+    .forEach(v => v.classList.remove('active'));
+
+  // normal app switching
+  views.forEach(id =>
+    document.getElementById(id).classList.remove('active')
+  );
+
   document.getElementById(views[mode]).classList.add('active');
+
   if(mode===1) startSnake();
   if(mode===3) renderSessions();
 }
+
+
+function activateSpecialView(id){
+  document.querySelectorAll('.view').forEach(v=>{
+    v.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+function openAccount(){
+  activateSpecialView('accountView');
+}
+
+function openSettings(){
+  activateSpecialView('settingsView');
+}
+
+
+
 renderView();
 
 // ---------- To-do ----------
@@ -843,12 +932,28 @@ function renderSessions(){
   <div id="remoteHoverZone"></div>
 
   <div id="remote">
-    <div class="remote-shell">
-      <div class="remote-button"></div>
-      <div class="remote-button"></div>
-      <div class="remote-button"></div>
-      <div class="remote-button"></div>
-    </div>
+  <div class="remote-shell">
+ <div class="remote-button" onclick="openAccount()">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="8" r="4"></circle>
+    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+  </svg>
+</div>
+
+<div class="remote-button" onclick="openSettings()">
+  <svg viewBox="0 0 24 24" width="14" height="14"
+       fill="none" stroke="white" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .67.39 1.27 1 1.51H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+</div>
+
+
+  <div class="remote-button"></div>
+  <div class="remote-button"></div>
+</div>
+
   </div>
 </div>
 
