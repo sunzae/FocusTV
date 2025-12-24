@@ -144,6 +144,34 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
   margin-top:15px;
   justify-content:center;
 }
+.color-wrapper{
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+
+.color-wrapper input[type="color"]{
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-dot{
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fefcf8;
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.color-wrapper:hover .color-dot{
+  transform: scale(1.08);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.18);
+}
+
 .timer-controls button{
   padding:8px 16px;
   border:none;
@@ -277,7 +305,11 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
       <h2 contenteditable id="focusName">Your Focus</h2>
       <div id="time" contenteditable>25:00</div>
       <div class="timer-controls">
-        <input type="color" id="bgColor" value="#fefcf8">
+    <div class="color-wrapper">
+  <div class="color-dot" id="colorDot"></div>
+  <input type="color" id="bgColor" value="#fefcf8">
+</div>
+
         <button onclick="startTimer()">Start</button>
         <button onclick="stopTimer()">Stop</button>
         <button onclick="resetTimer()">Reset</button>
@@ -390,7 +422,12 @@ window.addEventListener('load',()=>{
   const savedColor=localStorage.getItem('timerBgColor');
   if(savedSeconds){ timerSeconds=parseInt(savedSeconds); timeDisplay.textContent=formatTime(timerSeconds);}
   if(savedFocus){ document.getElementById('focusName').textContent=savedFocus;}
-  if(savedColor){ bgColorInput.value=savedColor; timerView.style.background=savedColor;}
+  if(savedColor){
+  bgColorInput.value = savedColor;
+  timerView.style.background = savedColor;
+  colorDot.style.background = savedColor;
+}
+
 });
 function saveTimer(){
   localStorage.setItem('timerSeconds',timerSeconds);
@@ -399,7 +436,16 @@ function saveTimer(){
 }
 timeDisplay.addEventListener('input',saveTimer);
 document.getElementById('focusName').addEventListener('input',saveTimer);
-bgColorInput.addEventListener('input',()=>{timerView.style.background=bgColorInput.value; saveTimer();});
+const colorDot = document.getElementById('colorDot');
+
+colorDot.style.background = bgColorInput.value;
+
+bgColorInput.addEventListener('input',()=>{
+  timerView.style.background = bgColorInput.value;
+  colorDot.style.background = bgColorInput.value;
+  saveTimer();
+});
+
 function parseTime(str){
   const parts=str.split(':'); let m=parseInt(parts[0])||0,s=parseInt(parts[1])||0; return m*60+s;
 }
