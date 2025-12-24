@@ -499,6 +499,24 @@ justify-content:center;
 .special-view.active{
   display:flex;
 }
+/* ===== Remote discovery hint (RIGHT EDGE GLOW) ===== */
+#remoteHint{
+  position:fixed;
+  top:0;
+  right:0;
+  width:6px;
+  height:100vh;
+  background:linear-gradient(
+    to left,
+    rgba(255,255,255,0.25),
+    transparent
+  );
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s ease;
+  z-index:999;
+}
+
 
 
 
@@ -597,6 +615,15 @@ firebase.auth().onAuthStateChanged(u=>{
 </script>
 
 <script>
+document.addEventListener('mousemove', e => {
+  const hint = document.getElementById('remoteHint');
+  if (window.innerWidth - e.clientX < 40) {
+    hint.style.opacity = 1;
+  } else {
+    hint.style.opacity = 0;
+  }
+});
+
 // ---------- Toggle logic ----------
 let mode=0;
 const views=['todoView','snakeView','timerView','sessionView'];
@@ -957,6 +984,7 @@ function renderSessions(){
   </div>
 </div>
 
+<div id="remoteHint"></div>
 
 </body>
 </html>
