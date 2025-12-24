@@ -321,6 +321,13 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 }
 
 .session-entry button:hover{background:#ff7875;}
+.session-section{
+  margin:16px 0 6px;
+  font-size:13px;
+  font-weight:600;
+  color:rgba(255,255,255,0.6);
+}
+
 </style>
 </head>
 <body>
@@ -575,42 +582,80 @@ function formatDate(ts){
     hour12: true
   });
 }
+function getSessionBucket(timestamp){
+  const now = new Date();
+  const d = new Date(timestamp);
+
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (d >= today) return 'Today';
+  if (d >= yesterday && d < today) return 'Yesterday';
+  if (d >= thisMonth) return 'This Month';
+  return 'Earlier';
+}
+
 
 function renderSessions(){
-  const sessions=getSessions();
-  sessionsContainer.innerHTML='';
-  sessions.forEach((s,i)=>{
-    const div=document.createElement('div');
-    div.className='session-entry';
-  const content = document.createElement('div');
-content.className = 'session-content';
+  const sessions = getSessions().slice().reverse();
+  sessionsContainer.innerHTML = '';
 
-const title = document.createElement('div');
-title.className = 'session-title';
-title.textContent = s.name;
+  const groups = {};
 
-const meta = document.createElement('div');
-meta.className = 'session-meta';
-meta.textContent = `${formatDate(s.timestamp)} • ${Math.floor(s.duration/60)} min ${s.duration % 60} sec`;
+  sessions.forEach(s => {
+    const group = getSessionBucket(s.timestamp);
+    if (!groups[group]) groups[group] = [];
+    groups[group].push(s);
+  });
 
-content.appendChild(title);
-content.appendChild(meta);
+  Object.keys(groups).forEach(groupName => {
 
-const btn = document.createElement('button');
-btn.className = 'session-delete';
-btn.textContent = '✕';
-btn.onclick = () => {
-  sessions.splice(i,1);
-  localStorage.setItem('sessions',JSON.stringify(sessions));
-  renderSessions();
-};
+    const header = document.createElement('div');
+    header.className = 'session-section';
+    header.textContent = groupName;
+    sessionsContainer.appendChild(header);
 
-div.appendChild(content);
-div.appendChild(btn);
+    groups[groupName].forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'session-entry';
 
-    sessionsContainer.appendChild(div);
+      const content = document.createElement('div');
+      content.className = 'session-content';
+
+      const title = document.createElement('div');
+      title.className = 'session-title';
+      title.textContent = s.name;
+
+      const meta = document.createElement('div');
+      meta.className = 'session-meta';
+      meta.textContent =
+        formatDate(s.timestamp) + ' • ' +
+        Math.floor(s.duration/60) + ' min ' +
+        (s.duration % 60) + ' sec';
+
+      content.appendChild(title);
+      content.appendChild(meta);
+
+      const btn = document.createElement('button');
+      btn.className = 'session-delete';
+      btn.textContent = '✕';
+      btn.onclick = () => {
+        const all = getSessions();
+        const idx = all.findIndex(x => x.timestamp === s.timestamp);
+        all.splice(idx, 1);
+        localStorage.setItem('sessions', JSON.stringify(all));
+        renderSessions();
+      };
+
+      div.appendChild(content);
+      div.appendChild(btn);
+      sessionsContainer.appendChild(div);
+    });
   });
 }
+
 </script>
 
 </body>
