@@ -245,43 +245,81 @@ body{height:100vh;background:#fafafa;display:flex;justify-content:center;align-i
 
 /* Session View */
 #sessionView{
-  background:#222; 
-  color:#fff; 
-  display:flex; 
-  flex-direction:column; 
-  align-items:center; 
-  justify-content:flex-start; 
-  padding:20px; 
-  border-radius:20px;
-}
-#sessionsContainer{
-  width:95%; 
-  max-height:400px; 
-  overflow-y:auto; 
-  display:flex; 
-  flex-direction:column; 
-  gap:8px;
-}
-.session-entry{
+  background:#222;
+  color:#fff;
   display:flex;
-  justify-content:space-between;
+  flex-direction:column;
   align-items:center;
-  padding:6px 10px;
+  justify-content:flex-start;
+  padding:20px;
+  border-radius:20px;
+  height:100%;
+}
+
+
+#sessionsContainer{
+  width:100%;
+  flex:1;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  padding-right:6px;
+}
+
+.session-entry{
+  position:relative;
+  display:flex;
+  align-items:center;
+  padding:10px 12px;
   background:#333;
-  border-radius:8px;
+  border-radius:10px;
+  flex-shrink: 0;
+  overflow:hidden;
+}
+
+.session-content{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  transition:transform 0.25s ease;
+}
+
+.session-title{
   font-size:14px;
+  font-weight:500;
   color:#fff;
 }
-.session-entry button{
-  background:#ff4d4f;
-  border:none;
-  border-radius:6px;
-  color:#fff;
+
+.session-meta{
   font-size:12px;
-  cursor:pointer;
-  padding:2px 6px;
-  margin-left:8px;
+  color:rgba(255,255,255,0.6);
 }
+
+.session-delete{
+  position:absolute;
+  right:12px;
+  opacity:0;
+  transform:translateX(10px);
+  background:rgba(255,77,79,0.15);
+  border:none;
+  color:#ff6b6b;
+  border-radius:6px;
+  font-size:12px;
+  padding:4px 6px;
+  cursor:pointer;
+  transition:opacity 0.2s ease, transform 0.2s ease;
+}
+
+.session-entry:hover .session-content{
+  transform:translateX(-18px);
+}
+
+.session-entry:hover .session-delete{
+  opacity:1;
+  transform:translateX(0);
+}
+
 .session-entry button:hover{background:#ff7875;}
 </style>
 </head>
@@ -544,14 +582,32 @@ function renderSessions(){
   sessions.forEach((s,i)=>{
     const div=document.createElement('div');
     div.className='session-entry';
-    const text=document.createElement('span');
-    text.textContent = `${s.name} • ${formatDate(s.timestamp)} • ${Math.floor(s.duration/60)} min ${s.duration % 60} sec`;
+  const content = document.createElement('div');
+content.className = 'session-content';
 
-    const btn=document.createElement('button');
-    btn.textContent='Delete';
-    btn.onclick=()=>{ sessions.splice(i,1); localStorage.setItem('sessions',JSON.stringify(sessions)); renderSessions(); };
-    div.appendChild(text);
-    div.appendChild(btn);
+const title = document.createElement('div');
+title.className = 'session-title';
+title.textContent = s.name;
+
+const meta = document.createElement('div');
+meta.className = 'session-meta';
+meta.textContent = `${formatDate(s.timestamp)} • ${Math.floor(s.duration/60)} min ${s.duration % 60} sec`;
+
+content.appendChild(title);
+content.appendChild(meta);
+
+const btn = document.createElement('button');
+btn.className = 'session-delete';
+btn.textContent = '✕';
+btn.onclick = () => {
+  sessions.splice(i,1);
+  localStorage.setItem('sessions',JSON.stringify(sessions));
+  renderSessions();
+};
+
+div.appendChild(content);
+div.appendChild(btn);
+
     sessionsContainer.appendChild(div);
   });
 }
