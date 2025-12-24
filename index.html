@@ -377,7 +377,10 @@ input.addEventListener('keypress',e=>{
 });
 
 // ---------- Timer ----------
-let timerSeconds=1500, interval=null;
+let timerSeconds = 1500, interval = null;
+let initialTimerSeconds = 1500;
+let timerRunning = false;
+
 const timerView=document.getElementById('timerView');
 const bgColorInput=document.getElementById('bgColor');
 const timeDisplay=document.getElementById('time');
@@ -401,8 +404,33 @@ function parseTime(str){
   const parts=str.split(':'); let m=parseInt(parts[0])||0,s=parseInt(parts[1])||0; return m*60+s;
 }
 function formatTime(sec){ const m=Math.floor(sec/60); const s=sec%60; return `${m}:${s.toString().padStart(2,'0')}`;}
-function startTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent); timerView.style.background=bgColorInput.value; interval=setInterval(()=>{ if(timerSeconds<=0){ stopTimer(); mode=1; renderView(); return;} timerSeconds--; timeDisplay.textContent=formatTime(timerSeconds); },1000);}
-function stopTimer(){ clearInterval(interval); recordTimerSession();}
+function startTimer(){
+  if (timerRunning) stopTimer();
+  timerRunning = true;
+  initialTimerSeconds = parseTime(timeDisplay.textContent);
+  timerSeconds = initialTimerSeconds;
+  timerView.style.background = bgColorInput.value;
+
+
+  interval = setInterval(() => {
+    if (timerSeconds <= 0) {
+      stopTimer();
+      mode = 1;
+      renderView();
+      return;
+    }
+    timerSeconds--;
+    timeDisplay.textContent = formatTime(timerSeconds);
+  }, 1000);
+}
+
+function stopTimer(){
+  if (!timerRunning) return;
+  clearInterval(interval);
+  timerRunning = false;
+  recordTimerSession();
+}
+
 function resetTimer(){ stopTimer(); timerSeconds=parseTime(timeDisplay.textContent)||1500; timeDisplay.textContent=formatTime(timerSeconds); timerView.style.background=bgColorInput.value;}
 
 // ---------- Snake ----------
@@ -426,7 +454,13 @@ char.addEventListener('click',()=>{ const wings=char.querySelectorAll('.wing'); 
 const sessionsContainer=document.getElementById('sessionsContainer');
 function getSessions(){ return JSON.parse(localStorage.getItem('sessions'))||[]; }
 function addSession(durationSeconds){ const now=new Date(); const sessions=getSessions(); sessions.push({timestamp:now.getTime(),duration:durationSeconds}); localStorage.setItem('sessions',JSON.stringify(sessions)); }
-function recordTimerSession(){ if(timerSeconds<1500){ addSession(1500-timerSeconds);} }
+function recordTimerSession(){
+  const elapsed = initialTimerSeconds - timerSeconds;
+  if (elapsed > 0) {
+    addSession(elapsed);
+  }
+}
+
 function formatDate(ts){ const d=new Date(ts); return d.toLocaleString([],{dateStyle:'short',timeStyle:'short'});}
 function renderSessions(){
   const sessions=getSessions();
