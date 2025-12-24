@@ -505,7 +505,20 @@ char.addEventListener('click',()=>{ const wings=char.querySelectorAll('.wing'); 
 // ---------- Session Tracker ----------
 const sessionsContainer=document.getElementById('sessionsContainer');
 function getSessions(){ return JSON.parse(localStorage.getItem('sessions'))||[]; }
-function addSession(durationSeconds){ const now=new Date(); const sessions=getSessions(); sessions.push({timestamp:now.getTime(),duration:durationSeconds}); localStorage.setItem('sessions',JSON.stringify(sessions)); }
+function addSession(durationSeconds){
+  const now = new Date();
+  const focusName = document.getElementById('focusName').textContent.trim() || 'Untitled Session';
+
+  const sessions = getSessions();
+  sessions.push({
+    timestamp: now.getTime(),
+    duration: durationSeconds,
+    name: focusName
+  });
+
+  localStorage.setItem('sessions', JSON.stringify(sessions));
+}
+
 function recordTimerSession(){
   const elapsed = initialTimerSeconds - timerSeconds;
   if (elapsed > 0) {
@@ -532,7 +545,8 @@ function renderSessions(){
     const div=document.createElement('div');
     div.className='session-entry';
     const text=document.createElement('span');
-    text.textContent=`${formatDate(s.timestamp)} - ${Math.floor(s.duration/60)} min ${s.duration%60} sec`;
+    text.textContent = `${s.name} • ${formatDate(s.timestamp)} • ${Math.floor(s.duration/60)} min ${s.duration % 60} sec`;
+
     const btn=document.createElement('button');
     btn.textContent='Delete';
     btn.onclick=()=>{ sessions.splice(i,1); localStorage.setItem('sessions',JSON.stringify(sessions)); renderSessions(); };
