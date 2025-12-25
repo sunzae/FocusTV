@@ -834,7 +834,8 @@ will-change: transform;
 <div class="tv-container">
   <div class="screen" id="screen">
 <!-- ===== Setup / Onboarding View ===== -->
-<div class="view special-view active" id="setupView">
+<div class="view special-view" id="setupView">
+
 
   <div class="setup-card">
 
@@ -1004,8 +1005,22 @@ signInButton.addEventListener('click',()=>{
   }).catch(console.error);
 });
 firebase.auth().onAuthStateChanged(u=>{
-  if(u) signInButton.style.display='none';
+  if(!u) return;
+
+  // hide login button
+  signInButton.style.display = 'none';
+
+  // FIRST TIME → show setup
+  if(localStorage.getItem('setupDone') !== 'yes'){
+    document.getElementById('setupView').classList.add('active');
+    showSetupStep(1);
+    return;
+  }
+
+  // already set up → go to app
+  renderView();
 });
+
 </script>
 
 <script>
@@ -1079,9 +1094,9 @@ function loadAccount(){
 }
 
 loadAccount();
+// ⛔ do NOT render app until login + setup check
 
 
-renderView();
 
 // ---------- To-do ----------
 const input=document.getElementById('taskInput');
