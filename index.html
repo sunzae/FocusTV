@@ -726,6 +726,101 @@ will-change: transform;
 
 
 
+/* ===== SETUP / ONBOARDING ===== */
+
+#setupView{
+  background: radial-gradient(circle at top, #111827, #020617);
+  justify-content: center;
+}
+
+.setup-card{
+  width: 90%;
+  max-width: 420px;
+  padding: 32px;
+  border-radius: 28px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.14),
+    rgba(255,255,255,0.05)
+  );
+
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  text-align: center;
+}
+
+.setup-step{
+  display: none;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.setup-step.active{
+  display: flex;
+}
+
+.setup-step h1{
+  font-size: 26px;
+  font-weight: 500;
+  color: #f8fafc;
+}
+
+.setup-step p{
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.setup-input{
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  outline: none;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  text-align: center;
+  font-size: 16px;
+}
+
+.setup-next{
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 16px;
+  background: white;
+  color: black;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vibe-grid{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+}
+
+.vibe-card{
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.vibe-card:hover{
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.12);
+}
+
+.vibe-card.selected{
+  background: white;
+  color: black;
+}
 
 </style>
 </head>
@@ -738,6 +833,39 @@ will-change: transform;
 
 <div class="tv-container">
   <div class="screen" id="screen">
+<!-- ===== Setup / Onboarding View ===== -->
+<div class="view special-view active" id="setupView">
+
+  <div class="setup-card">
+
+    <!-- Step 1 -->
+    <div class="setup-step active" data-step="1">
+      <h1>Welcome ✦</h1>
+      <p>Let’s set things up — it’ll only take a moment.</p>
+      <button class="setup-next">Continue</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="setup-step" data-step="2">
+      <h1>What should we call you?</h1>
+      <input id="setupName" class="setup-input" placeholder="Your name">
+      <button class="setup-next">Continue</button>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="setup-step" data-step="3">
+      <h1>Choose your vibe</h1>
+      <div class="vibe-grid">
+        <div class="vibe-card">Calm</div>
+        <div class="vibe-card">Focus</div>
+        <div class="vibe-card">Playful</div>
+      </div>
+      <button class="setup-next">Finish</button>
+    </div>
+
+  </div>
+</div>
+
 <div class="view special-view" id="accountView">
 
 <div class="account-flip">
@@ -1238,6 +1366,61 @@ if(accountFlip){
     accountFlip.classList.toggle('flipped');
   });
 }
+// ===== SETUP FLOW LOGIC =====
+let currentSetupStep = 1;
+
+function showSetupStep(step){
+  document.querySelectorAll('.setup-step')
+    .forEach(s => s.classList.remove('active'));
+
+  const el = document.querySelector(`.setup-step[data-step="${step}"]`);
+  if(el) el.classList.add('active');
+
+  currentSetupStep = step;
+}
+
+// next buttons
+document.querySelectorAll('.setup-next').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    if(currentSetupStep === 2){
+      const name = document.getElementById('setupName').value.trim();
+      if(name) localStorage.setItem('accountName', name);
+    }
+
+    if(currentSetupStep === 3){
+      localStorage.setItem('setupDone', 'yes');
+
+      // close setup
+      document.getElementById('setupView').classList.remove('active');
+
+      // load account + app
+      loadAccount();
+      renderView();
+      return;
+    }
+
+    showSetupStep(currentSetupStep + 1);
+  });
+});
+
+// vibe selection
+document.querySelectorAll('.vibe-card').forEach(card=>{
+  card.addEventListener('click', ()=>{
+    document.querySelectorAll('.vibe-card')
+      .forEach(c => c.classList.remove('selected'));
+
+    card.classList.add('selected');
+    localStorage.setItem('userVibe', card.textContent);
+  });
+});
+
+// show setup only once
+window.addEventListener('load', ()=>{
+  if(localStorage.getItem('setupDone') === 'yes'){
+    document.getElementById('setupView').classList.remove('active');
+    renderView();
+  }
+});
 
 </script>
 <!-- Minimal Remote Control -->
