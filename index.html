@@ -727,11 +727,28 @@ will-change: transform;
 
 
 /* ===== SETUP / ONBOARDING ===== */
+/* Full-screen setup mode */
+body.setup-active .tv-container,
+body.setup-active .remote-btn,
+body.setup-active #remoteWrapper,
+body.setup-active #cuteCharacter,
+body.setup-active #edgeAffordance{
+  display: none !important;
+}
+
+body.setup-active{
+  background: #050505;
+}
+
 
 #setupView{
-  background: radial-gradient(circle at top, #111827, #020617);
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0a0a0a, #000);
   justify-content: center;
+  z-index: 2000;
 }
+
 
 .setup-card{
   width: 90%;
@@ -827,33 +844,31 @@ will-change: transform;
 <body>
 
 <!-- Google Sign-In Button -->
-<button id="googleSignIn" style="margin-bottom:20px; padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#4285F4; color:#fff; cursor:pointer;">
-  Sign in with Google
-</button>
 
-<div class="tv-container">
-  <div class="screen" id="screen">
+
+
 <!-- ===== Setup / Onboarding View ===== -->
 <div class="view special-view" id="setupView">
-
-
   <div class="setup-card">
 
-    <!-- Step 1 -->
-    <div class="setup-step active" data-step="1">
-      <h1>Welcome ✦</h1>
-      <p>Let’s set things up — it’ll only take a moment.</p>
-      <button class="setup-next">Continue</button>
-    </div>
+   <div class="setup-step" data-step="1">
+  <h1>Welcome to FocusTV</h1>
+  <p>Let’s set things up — just once.</p>
 
-    <!-- Step 2 -->
+  <button id="googleSignIn"
+          class="setup-next"
+          style="background:#4285F4;color:white">
+    Continue with Google
+  </button>
+</div>
+
+
     <div class="setup-step" data-step="2">
       <h1>What should we call you?</h1>
       <input id="setupName" class="setup-input" placeholder="Your name">
       <button class="setup-next">Continue</button>
     </div>
 
-    <!-- Step 3 -->
     <div class="setup-step" data-step="3">
       <h1>Choose your vibe</h1>
       <div class="vibe-grid">
@@ -866,6 +881,14 @@ will-change: transform;
 
   </div>
 </div>
+
+
+
+
+<div class="tv-container">
+  <div class="screen" id="screen">
+
+
 
 <div class="view special-view" id="accountView">
 
@@ -1011,11 +1034,15 @@ firebase.auth().onAuthStateChanged(u=>{
   signInButton.style.display = 'none';
 
   // FIRST TIME → show setup
-  if(localStorage.getItem('setupDone') !== 'yes'){
-    document.getElementById('setupView').classList.add('active');
-    showSetupStep(1);
-    return;
-  }
+ if(localStorage.getItem('setupDone') !== 'yes'){
+  document.body.classList.add('setup-active');
+  document.getElementById('setupView').classList.add('active');
+  showSetupStep(1);
+  return;
+
+
+}
+
 
   // already set up → go to app
   renderView();
@@ -1405,15 +1432,16 @@ document.querySelectorAll('.setup-next').forEach(btn=>{
     if(currentSetupStep === 3){
       localStorage.setItem('setupDone', 'yes');
 
-      // close setup
-      document.getElementById('setupView').classList.remove('active');
+// exit setup mode
+document.body.classList.remove('setup-active');
+document.getElementById('setupView').classList.remove('active');
+
 
       // load account + app
       loadAccount();
 
-if(localStorage.getItem('setupDone') === 'yes'){
-  renderView();
-}
+renderView();
+
 
       return;
     }
