@@ -1410,7 +1410,11 @@ document.querySelectorAll('.setup-next').forEach(btn=>{
 
       // load account + app
       loadAccount();
-      renderView();
+
+if(localStorage.getItem('setupDone') === 'yes'){
+  renderView();
+}
+
       return;
     }
 
@@ -1429,13 +1433,7 @@ document.querySelectorAll('.vibe-card').forEach(card=>{
   });
 });
 
-// show setup only once
-window.addEventListener('load', ()=>{
-  if(localStorage.getItem('setupDone') === 'yes'){
-    document.getElementById('setupView').classList.remove('active');
-    renderView();
-  }
-});
+
 
 </script>
 <!-- Minimal Remote Control -->
