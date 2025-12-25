@@ -952,6 +952,10 @@ function cycleMode(){
 }
 function renderView(){
 
+  const welcome = document.getElementById('welcomeView');
+  if (welcome) welcome.classList.remove('active');
+
+
   // 🔒 FORCE-CLOSE Account & Settings
   // close account & settings, NOT welcome
 ['accountView','settingsView'].forEach(id=>{
@@ -1005,9 +1009,7 @@ function loadAccount(){
 }
 
 loadAccount();
-// start with nothing visible
-document.querySelectorAll('.view')
-  .forEach(v => v.classList.remove('active'));
+
 
 
 
@@ -1146,8 +1148,8 @@ function stopTimer(){
   if (!timerRunning) return;
   clearInterval(interval);
   timerRunning = false;
-  recordTimerSession();
 }
+
 
 function resetTimer(){
   clearInterval(interval);
